@@ -19,7 +19,7 @@ class DashboardPage extends StatelessWidget {
           children: [
             Obx(
               () => Text(
-                'Hai, ${controller.username.value}!\nEmail: ${controller.email.value}\nToken: ${controller.token.value}',
+                'Hai, ${controller.username.value}${controller.email.value}',
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
             ),

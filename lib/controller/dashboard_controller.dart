@@ -10,8 +10,9 @@ class DashboardController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    token.value = tmp.read('token');
-    username.value = tmp.read('username');
-    email.value = tmp.read('email');
+    token.value = tmp.read('token') ?? '';
+    username.value = tmp.read('name') ?? '';
+    email.value = tmp.read('email') ?? '';
   }
+  // Tempat menaruh logika/state halaman Dashboard nantinya
 }
