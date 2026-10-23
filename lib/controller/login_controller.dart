@@ -10,14 +10,17 @@ class LoginController extends GetxController {
 
   final isLoading = false.obs;
 
+  // Sementara disimpan di memori. Untuk persisten, pakai shared_preferences.
+  static String? accessToken;
+
   Future<void> login() async {
-    final usernameInput = emailController.text.trim();
+    final emailInput = emailController.text.trim();
     final passwordInput = passwordController.text.trim();
 
-    if (usernameInput.isEmpty || passwordInput.isEmpty) {
+    if (emailInput.isEmpty || passwordInput.isEmpty) {
       Get.snackbar(
         'Peringatan',
-        'Username/Email dan password tidak boleh kosong',
+        'Email dan password tidak boleh kosong',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.amber.shade100,
       );
@@ -29,30 +32,39 @@ class LoginController extends GetxController {
 
       final response = await http.post(
         Uri.parse('http://127.0.0.1:8000/api/login'),
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json', // wajib untuk Laravel API
+        },
         body: jsonEncode({
-          'username': usernameInput,
+          'email': emailInput, // BUKAN 'username'
           'password': passwordInput,
-          'expiresInMins': 30,
         }),
       );
 
+      debugPrint('LOGIN ${response.statusCode}: ${response.body}');
+
+      final data = jsonDecode(response.body);
+
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
+        accessToken = data['access_token'];
 
         Get.snackbar(
           'Sukses',
-          'Login berhasil! Selamat datang, ${data['firstName']}',
+          data['message'] ?? 'Login berhasil',
           snackPosition: SnackPosition.BOTTOM,
           backgroundColor: Colors.green.shade100,
         );
 
         Get.offAllNamed('/dashboard');
       } else {
-        final errorData = jsonDecode(response.body);
+        String errorMessage = data['message'] ?? 'Kredensial tidak valid';
+        if (data['errors'] != null) {
+          errorMessage = (data['errors'] as Map).values.first[0];
+        }
         Get.snackbar(
           'Gagal Login',
-          errorData['message'] ?? 'Kredensial tidak valid',
+          errorMessage,
           snackPosition: SnackPosition.BOTTOM,
           backgroundColor: Colors.red.shade100,
         );
