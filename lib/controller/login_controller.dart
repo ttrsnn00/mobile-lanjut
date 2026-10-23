@@ -1,8 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
-
-import 'dart:convert';
 
 class LoginController extends GetxController {
   final emailController = TextEditingController();
@@ -10,8 +11,10 @@ class LoginController extends GetxController {
 
   final isLoading = false.obs;
 
-  // Sementara disimpan di memori. Untuk persisten, pakai shared_preferences.
-  static String? accessToken;
+  // Instance GetStorage & Secure Storage
+  final tmp = GetStorage();
+
+  static const String baseUrl = 'http://127.0.0.1:8000/api';
 
   Future<void> login() async {
     final emailInput = emailController.text.trim();
@@ -31,40 +34,40 @@ class LoginController extends GetxController {
       isLoading.value = true;
 
       final response = await http.post(
-        Uri.parse('http://127.0.0.1:8000/api/login'),
+        Uri.parse('$baseUrl/login'),
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json', // wajib untuk Laravel API
+          'Accept': 'application/json',
         },
-        body: jsonEncode({
-          'email': emailInput, // BUKAN 'username'
-          'password': passwordInput,
-        }),
+        body: jsonEncode({'email': emailInput, 'password': passwordInput}),
       );
-
-      debugPrint('LOGIN ${response.statusCode}: ${response.body}');
 
       final data = jsonDecode(response.body);
 
       if (response.statusCode == 200) {
-        accessToken = data['access_token'];
+        // Ambil objek user jika backend mengembalikannya dalam key 'user' / 'data'
+        final userData = data['user'] ?? data['data'] ?? {};
+
+        // Storing data dari token sampai email menggunakan tmp (GetStorage)
+        tmp.write('token', data['access_token'] ?? data['token']);
+        tmp.write('id', userData['id']);
+        tmp.write('name', userData['name']);
+        tmp.write('email', userData['email'] ?? emailInput);
+
+        // Opsi menyimpan token di secure storage
 
         Get.snackbar(
           'Sukses',
-          data['message'] ?? 'Login berhasil',
+          data['message'] ?? 'Login berhasil!',
           snackPosition: SnackPosition.BOTTOM,
           backgroundColor: Colors.green.shade100,
         );
 
         Get.offAllNamed('/dashboard');
       } else {
-        String errorMessage = data['message'] ?? 'Kredensial tidak valid';
-        if (data['errors'] != null) {
-          errorMessage = (data['errors'] as Map).values.first[0];
-        }
         Get.snackbar(
           'Gagal Login',
-          errorMessage,
+          data['message'] ?? 'Email atau password salah',
           snackPosition: SnackPosition.BOTTOM,
           backgroundColor: Colors.red.shade100,
         );

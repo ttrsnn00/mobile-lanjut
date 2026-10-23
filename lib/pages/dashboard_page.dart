@@ -17,9 +17,11 @@ class DashboardPage extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text(
-              'Halaman Dashboard',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            Obx(
+              () => Text(
+                'Hai, ${controller.username.value}!\nEmail: ${controller.email.value}\nToken: ${controller.token.value}',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
             ),
             const SizedBox(height: 20),
             ElevatedButton(
