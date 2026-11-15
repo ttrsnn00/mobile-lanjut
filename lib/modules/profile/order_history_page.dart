@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
-import 'order_history_controller.dart';
-
 import 'package:intl/intl.dart';
+
+import '../../core/theme/app_theme.dart';
+import 'order_history_controller.dart';
 
 class OrderHistoryPage extends StatelessWidget {
   const OrderHistoryPage({super.key});
@@ -11,7 +11,6 @@ class OrderHistoryPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.put(OrderHistoryController());
-    // Format mata uang Rupiah
     final currencyFormatter = NumberFormat.currency(
       locale: 'id_ID',
       symbol: 'Rp ',
@@ -19,73 +18,125 @@ class OrderHistoryPage extends StatelessWidget {
     );
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Riwayat Pesanan'),
-        backgroundColor: const Color(0xFF2E7D32),
-        foregroundColor: Colors.white,
-      ),
+      appBar: AppBar(title: const Text('Riwayat Pesanan')),
       body: Obx(() {
         if (controller.isLoading.value) {
           return const Center(
-            child: CircularProgressIndicator(color: Color(0xFF2E7D32)),
+            child: CircularProgressIndicator(color: AppColors.primary),
           );
         }
 
         if (controller.orders.isEmpty) {
-          return const Center(
-            child: Text('Anda belum memiliki riwayat pesanan.'),
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(32),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: const BoxDecoration(
+                      color: AppColors.surfaceSand,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.receipt_long_outlined,
+                      size: 48,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Belum Ada Transaksi',
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  const Text(
+                    'Pesanan tanaman yang Anda checkout akan muncul di halaman ini.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 13,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           );
         }
 
-        return ListView.builder(
-          padding: const EdgeInsets.all(16),
+        return ListView.separated(
+          padding: const EdgeInsets.all(20),
           itemCount: controller.orders.length,
+          separatorBuilder: (_, __) => const SizedBox(height: 16),
           itemBuilder: (context, index) {
             final order = controller.orders[index];
-            // Format tanggal dasar (bisa dipercantik nanti)
             final dateStr = order.createdAt.split('T')[0];
+            final bool isPending = order.status.toLowerCase() == 'pending';
 
             return Card(
-              margin: const EdgeInsets.only(bottom: 16),
-              elevation: 2,
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(18),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          'Order #${order.id}',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Order #${order.id}',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 15,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              dateStr,
+                              style: const TextStyle(
+                                color: AppColors.textSecondary,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
                         ),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
+                            horizontal: 12,
+                            vertical: 5,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.green.shade100,
-                            borderRadius: BorderRadius.circular(12),
+                            color: isPending
+                                ? AppColors.terracottaLight
+                                : AppColors.sageLight,
+                            borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
                             order.status.toUpperCase(),
                             style: TextStyle(
-                              color: Colors.green.shade800,
-                              fontSize: 12,
+                              color: isPending
+                                  ? AppColors.terracotta
+                                  : AppColors.primary,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 11,
+                              letterSpacing: 0.5,
                             ),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Tanggal: $dateStr',
-                      style: const TextStyle(color: Colors.grey),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 12),
+                      child: Divider(height: 1, color: AppColors.border),
                     ),
-                    const Divider(),
-                    // Menampilkan list item di dalam pesanan ini
                     ...order.items.map(
                       (item) => Padding(
                         padding: const EdgeInsets.symmetric(vertical: 4),
@@ -94,31 +145,48 @@ class OrderHistoryPage extends StatelessWidget {
                           children: [
                             Expanded(
                               child: Text(
-                                '${item.quantity}x ${item.plant.name}',
+                                '${item.quantity}x  ${item.plant.name}',
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  color: AppColors.textPrimary,
+                                ),
                               ),
                             ),
                             Text(
                               currencyFormatter.format(
                                 item.price * item.quantity,
                               ),
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                                color: AppColors.textSecondary,
+                              ),
                             ),
                           ],
                         ),
                       ),
                     ),
-                    const Divider(),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 12),
+                      child: Divider(height: 1, color: AppColors.border),
+                    ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const Text(
                           'Total Pembayaran',
-                          style: TextStyle(fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                            color: AppColors.textSecondary,
+                          ),
                         ),
                         Text(
                           currencyFormatter.format(order.totalPrice),
                           style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF2E7D32),
+                            fontWeight: FontWeight.w800,
+                            fontSize: 16,
+                            color: AppColors.primary,
                           ),
                         ),
                       ],

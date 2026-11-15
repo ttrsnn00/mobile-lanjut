@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 
+import 'core/theme/app_theme.dart';
+
 import 'routes/app_pages.dart';
 
 import 'package:shiroine/modules/cart/cart_controller.dart';
@@ -25,10 +27,7 @@ class MyApp extends StatelessWidget {
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Aplikasi Tanaman',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF2E7D32)),
-        useMaterial3: true,
-      ),
+      theme: AppTheme.lightTheme,
       initialRoute: AppPages.getInitialRoute(),
       getPages: AppPages.routes,
     );

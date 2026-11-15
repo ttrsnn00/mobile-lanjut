@@ -3,7 +3,7 @@ import 'package:shiroine/data/models/cart_model.dart';
 import 'package:shiroine/data/models/plant_models.dart';
 import 'package:get_storage/get_storage.dart';
 
-import '../cart/cart_success_page.dart';
+import 'checkout_success_page.dart';
 
 import '../../data/providers/api_provider.dart';
 

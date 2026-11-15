@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 
+import '../../core/theme/app_theme.dart';
 import 'cart_controller.dart';
 
 class CartPage extends GetView<CartController> {
@@ -8,84 +10,176 @@ class CartPage extends GetView<CartController> {
 
   @override
   Widget build(BuildContext context) {
+    final currencyFormatter = NumberFormat.currency(
+      locale: 'id_ID',
+      symbol: 'Rp ',
+      decimalDigits: 0,
+    );
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF6F8F6),
-      appBar: AppBar(
-        title: const Text('Keranjang Belanja'),
-        backgroundColor: const Color(0xFF2E7D32),
-        foregroundColor: Colors.white,
-      ),
+      appBar: AppBar(title: const Text('Keranjang Belanja')),
       body: Obx(() {
         if (controller.cartItems.isEmpty) {
-          return const Center(child: Text('Keranjang Anda masih kosong 🌿'));
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(32),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(22),
+                    decoration: const BoxDecoration(
+                      color: AppColors.surfaceSand,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.shopping_bag_outlined,
+                      size: 48,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  const Text(
+                    'Keranjang Masih Kosong',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  const Text(
+                    'Jelajahi katalog tanaman di beranda dan tambahkan pilihanmu ke sini.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: AppColors.textSecondary,
+                      height: 1.5,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
         }
-        return ListView.builder(
-          padding: const EdgeInsets.all(16),
+
+        return ListView.separated(
+          padding: const EdgeInsets.all(20),
           itemCount: controller.cartItems.length,
+          separatorBuilder: (_, __) => const SizedBox(height: 14),
           itemBuilder: (context, index) {
             final cartItem = controller.cartItems[index];
             final plant = cartItem.plant;
 
             return Card(
-              margin: const EdgeInsets.only(bottom: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
               child: Padding(
                 padding: const EdgeInsets.all(12),
                 child: Row(
                   children: [
                     ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(12),
                       child: Image.network(
                         plant.imageUrl,
-                        width: 80,
-                        height: 80,
+                        width: 84,
+                        height: 84,
                         fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Container(
+                          width: 84,
+                          height: 84,
+                          color: AppColors.surfaceSand,
+                          child: const Icon(
+                            Icons.local_florist_rounded,
+                            color: AppColors.sage,
+                          ),
+                        ),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 14),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             plant.name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 15,
+                              color: AppColors.textPrimary,
                             ),
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Rp ${plant.price}',
-                            style: const TextStyle(color: Color(0xFF2E7D32)),
+                            currencyFormatter.format(plant.price),
+                            style: const TextStyle(
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 14,
+                            ),
                           ),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.remove_circle_outline,
-                                  color: Colors.grey,
+                          const SizedBox(height: 10),
+
+                          // Stepper Jumlah Item
+                          Container(
+                            decoration: BoxDecoration(
+                              color: AppColors.background,
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: AppColors.border),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                InkWell(
+                                  borderRadius: const BorderRadius.horizontal(
+                                    left: Radius.circular(10),
+                                  ),
+                                  onTap: () =>
+                                      controller.decreaseQuantity(cartItem),
+                                  child: const Padding(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 6,
+                                    ),
+                                    child: Icon(
+                                      Icons.remove_rounded,
+                                      size: 16,
+                                      color: AppColors.textSecondary,
+                                    ),
+                                  ),
                                 ),
-                                onPressed: () =>
-                                    controller.decreaseQuantity(cartItem),
-                              ),
-                              Text(
-                                '${cartItem.quantity}',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                  ),
+                                  child: Text(
+                                    '${cartItem.quantity}',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 13,
+                                      color: AppColors.textPrimary,
+                                    ),
+                                  ),
                                 ),
-                              ),
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.add_circle_outline,
-                                  color: Color(0xFF2E7D32),
+                                InkWell(
+                                  borderRadius: const BorderRadius.horizontal(
+                                    right: Radius.circular(10),
+                                  ),
+                                  onTap: () => controller.addToCart(plant),
+                                  child: const Padding(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 6,
+                                    ),
+                                    child: Icon(
+                                      Icons.add_rounded,
+                                      size: 16,
+                                      color: AppColors.primary,
+                                    ),
+                                  ),
                                 ),
-                                onPressed: () => controller.addToCart(plant),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ],
                       ),
@@ -101,62 +195,60 @@ class CartPage extends GetView<CartController> {
         if (controller.cartItems.isEmpty) return const SizedBox.shrink();
 
         return Container(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
           decoration: const BoxDecoration(
-            color: Colors.white,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black12,
-                blurRadius: 10,
-                offset: Offset(0, -5),
-              ),
-            ],
+            color: AppColors.surface,
+            border: Border(top: BorderSide(color: AppColors.border, width: 1)),
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Total Pembayaran',
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                  Text(
-                    'Rp ${controller.totalPrice}',
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF2E7D32),
+          child: SafeArea(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Total Pembayaran',
+                      style: TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
-                  ),
-                ],
-              ),
-              ElevatedButton(
-                onPressed: controller.isCheckingOut.value
-                    ? null
-                    : controller.checkout,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF2E7D32),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 12,
+                    const SizedBox(height: 2),
+                    Text(
+                      currencyFormatter.format(controller.totalPrice),
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ],
+                ),
+                ElevatedButton.icon(
+                  onPressed: controller.isCheckingOut.value
+                      ? null
+                      : controller.checkout,
+                  icon: controller.isCheckingOut.value
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Icon(Icons.arrow_forward_rounded, size: 18),
+                  label: Text(
+                    controller.isCheckingOut.value
+                        ? 'Memproses...'
+                        : 'Checkout',
                   ),
                 ),
-                child: controller.isCheckingOut.value
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2,
-                        ),
-                      )
-                    : const Text('Checkout'),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       }),
